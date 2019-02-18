@@ -1,3 +1,5 @@
+from random import randint
+
 class DNA:
     def __init__(self, five_to_three, three_to_five):
         self.five = five_to_three
@@ -32,7 +34,7 @@ PRIMER1 = "catcgactgcgcccaccagc"
 PRIMER2 = complement(PRIMER1)
 
 PRIMER_LENGTH = 20
-EXTENSION_LEN = 50
+EXTENSION_LEN = 200
 CYCLE_LIMIT = 15
 
 def pcr(dna_strand):
@@ -53,7 +55,7 @@ def pcr(dna_strand):
     # Elongation - extend primer with bases complementary to template strand
     five_complement = ""
     three_complement = ""
-    for i in range(EXTENSION_LEN):
+    for i in range(EXTENSION_LEN+randint(-50,50)):
         five_complement += BASE_MAP[five[i + five_start]]
         three_complement += BASE_MAP[three[i + three_start]]
 
