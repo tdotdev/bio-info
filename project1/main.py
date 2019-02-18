@@ -27,18 +27,19 @@ agcagaaatgcagtctcaaaggatcccggggagaaagcgaggccgaccctcacttcactc"
 
 STARTER_THREE = complement(STARTER_FIVE)
 
+# Primer specifically created to target the strand mentioned above
 PRIMER1 = "catcgactgcgcccaccagc"
 PRIMER2 = complement(PRIMER1)
 
 PRIMER_LENGTH = 20
-TAQ_SIZE = 50
-CYCLE_LIMIT = 20
+EXTENSION_LEN = 50
+CYCLE_LIMIT = 15
 
 def pcr(dna_strand):
     # Denaturation - split DNA into single template strands
     five = dna_strand.five
     three = dna_strand.three
-
+    
     # Annealing - introduction of primers
     try:
         five_start = five.index(PRIMER1)
@@ -52,7 +53,7 @@ def pcr(dna_strand):
     # Elongation - extend primer with bases complementary to template strand
     five_complement = ""
     three_complement = ""
-    for i in range(TAQ_SIZE):
+    for i in range(EXTENSION_LEN):
         five_complement += BASE_MAP[five[i + five_start]]
         three_complement += BASE_MAP[three[i + three_start]]
 
@@ -61,13 +62,22 @@ def pcr(dna_strand):
 
     return (new_strand1, new_strand2)
 
+# Our starting DNA
 starter = DNA(STARTER_FIVE, STARTER_THREE)
+
+# A queue for DNA strands to be PCR'd
 strand_buffer = [starter]
 
 for i in range(CYCLE_LIMIT):
+    # Iterate through strands that were in the buffer before this loop executes
     for j in range(len(strand_buffer)):
+        # Aquire two new DNA strands through PCR of one strand
         new_strands = pcr(strand_buffer[0])
+        
+        # Remove current strand from buffer (this strand would no longer exist after real PCR)
         strand_buffer.pop(0)
+
+        # Add our new strands to the buffer to be processed in the next loop of CYCLE_LIMIT
         strand_buffer.append(new_strands[0])
         strand_buffer.append(new_strands[1])
 
