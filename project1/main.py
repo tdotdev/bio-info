@@ -29,40 +29,55 @@ agcagaaatgcagtctcaaaggatcccggggagaaagcgaggccgaccctcacttcactc"
 
 STARTER_THREE = complement(STARTER_FIVE)
 
-# Primer specifically created to target the strand mentioned above
-PRIMER1 = "catcgactgcgcccaccagc"
-PRIMER2 = complement(PRIMER1)
-
 PRIMER_LENGTH = 20
-EXTENSION_LEN = 200
-CYCLE_LIMIT = 15
+REPLICATION_ZONE = 0
+EXTENSION_LENGTH = 200
+CYCLE_LIMIT = 5
+
+# Primer specifically created to target the strand mentioned above
+PRIMER1 = complement(STARTER_FIVE[REPLICATION_ZONE+EXTENSION_LENGTH-PRIMER_LENGTH:REPLICATION_ZONE+EXTENSION_LENGTH])
+PRIMER2 = complement(STARTER_THREE[REPLICATION_ZONE:REPLICATION_ZONE+PRIMER_LENGTH])
+print(STARTER_FIVE[REPLICATION_ZONE+EXTENSION_LENGTH-PRIMER_LENGTH:REPLICATION_ZONE+EXTENSION_LENGTH])
+print(PRIMER1)
 
 def pcr(dna_strand):
     # Denaturation - split DNA into single template strands
     five = dna_strand.five
     three = dna_strand.three
+
+    copies = []
     
     # Annealing - introduction of primers
-    try:
-        five_start = five.index(PRIMER1)
-    except:
-        five_start = five.index(PRIMER2)
-    try:
-        three_start = three.index(PRIMER2)
-    except:
-        three_start = three.index(PRIMER1)
+    # Need to check if the primer matches what the complement is for the target start area
+    if primer_can_bind(five, PRIMER1):
+        # Extend five
+        five_complement = ""
+        five_start = REPLICATION_ZONE
+        for i in range(EXTENSION_LENGTH+randint(-50,50)):
+            if i+five_start < len(five):
+                five_complement += BASE_MAP[five[i + five_start]]
 
-    # Elongation - extend primer with bases complementary to template strand
-    five_complement = ""
-    three_complement = ""
-    for i in range(EXTENSION_LEN+randint(-50,50)):
-        five_complement += BASE_MAP[five[i + five_start]]
-        three_complement += BASE_MAP[three[i + three_start]]
+        copies.append(DNA(five[::-1], five_complement[::-1]))
 
-    new_strand1 = DNA(five, five_complement)
-    new_strand2 = DNA(three, three_complement)
+    if primer_can_bind(three, PRIMER2):
+        # Extend three
+        three_complement = ""
+        three_start = REPLICATION_ZONE
+        for i in range(EXTENSION_LENGTH+randint(-50,50)):
+            if i+three_start < len(three):
+                three_complement += BASE_MAP[three[i + three_start]]
 
-    return (new_strand1, new_strand2)
+        copies.append(DNA(three_complement, three))
+
+    return copies
+
+def primer_can_bind(base, primer):
+    print(primer)
+    print(base)
+    for i in range(PRIMER_LENGTH):
+        if primer[i] != BASE_MAP[base[REPLICATION_ZONE+i]]:
+            return False
+    return True
 
 # Our starting DNA
 starter = DNA(STARTER_FIVE, STARTER_THREE)
@@ -80,7 +95,7 @@ for i in range(CYCLE_LIMIT):
         strand_buffer.pop(0)
 
         # Add our new strands to the buffer to be processed in the next loop of CYCLE_LIMIT
-        strand_buffer.append(new_strands[0])
-        strand_buffer.append(new_strands[1])
+        for strands in strand_buffer:
+            strand_buffer.append(strands)
 
 print(f"Number of copies = {len(strand_buffer)} DNA segments")
