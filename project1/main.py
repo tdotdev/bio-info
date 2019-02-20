@@ -1,4 +1,7 @@
 import random
+
+import matplotlib.pyplot as plt
+
 from dna import dna1
 
 class DNA:
@@ -16,13 +19,13 @@ BASE_MAP = {
 def complement(strand):
     return ''.join([BASE_MAP[base] for base in strand])
 
-STARTER_THREE = dna1
-STARTER_FIVE = complement(STARTER_THREE)
-
 PRIMER_LENGTH = 20
 EXTENSION_LEN = 200
-CYCLE_LIMIT = 15
+CYCLE_LIMIT = 10
 FALL_OFF = 50
+
+STARTER_THREE = dna1
+STARTER_FIVE = complement(STARTER_THREE)
 
 # Primer specifically created to target the strand mentioned above
 PRIMER1 = "GCCACTACAATTGTATCTAA".lower()
@@ -30,6 +33,7 @@ PRIMER2 = complement("ACCGGTGTACGATTCAACTA".lower())
 TARGET = "GCCGTGTAATGAGAACATCCACACCTTAGTGAATCGATGC\
 CGCCGCTTCGGAATACCGTTTTGGCTACCTGTTACTAAGCCCATCGCGATTTTCAGGTAA\
 TCGTGCACGTAGGGTTGCACCGCACGCATGTCGAACTGGTGGCGAAGTACGATTCCACGG".lower()
+
 
 def pcr(dna_strand):
     # Denaturation - split DNA into single template strands
@@ -81,7 +85,6 @@ strand_buffer = [starter]
 
 for i in range(CYCLE_LIMIT):
     # Iterate through strands that were in the buffer before this loop executes
-    print(i)
     for j in range(len(strand_buffer)):
         # Aquire two new DNA strands through PCR of one strand
 
@@ -96,4 +99,32 @@ for i in range(CYCLE_LIMIT):
         if new_strands[1] is not None:
             strand_buffer.append(new_strands[1])
 
+def average_length(strand_buffer):
+    sum = 0
+    for strand in strand_buffer:
+        sum += len(strand.five)
+        sum += len(strand.three)
+
+    return sum / (2*len(strand_buffer))
+
+def create_histogram(strand_buffer):
+    lengths = []
+    for strand in strand_buffer:
+        lengths.append(len(strand.five))
+        lengths.append(len(strand.three))
+        
+    plt.hist(lengths, bins=[150,160,170,180,190,200,210,220,230,240,250], rwidth=1/8)
+    plt.title("Frequency of DNA Fragment Lengths")
+    plt.xlabel("Length")
+    plt.ylabel("Frequency")
+    plt.show()
+            
 print(f"{len(strand_buffer)} DNA segments")
+
+try:
+    print("Average DNA fragment length: ", average_length(strand_buffer))
+except:
+    pass
+
+create_histogram(strand_buffer)
+
